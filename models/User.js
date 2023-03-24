@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
-const { boolean } = require("webidl-conversions");
 
 const UserSchema = new mongoose.Schema(
     {
+        fullname:{
+            type: String,
+            required: true,
+        },
         username :{
             type: String,
             required: true,
@@ -21,6 +24,7 @@ const UserSchema = new mongoose.Schema(
             type : Boolean,
             default:false,
         },
+        img:{type:String}
     },
     {timestamps:true}
 );
