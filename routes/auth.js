@@ -5,21 +5,30 @@ const jwt = require("jsonwebtoken");
 
 // REGISTER
 router.post("/register", async (req, res) => {
-  const newUser = new User({
-    username: req.body.username,
-    email: req.body.email,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.PASS_SEC
-    ).toString(),
-    isAdmin: req.body.default,
-  });
-
-  try {
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(500).json(err);
+  const user = await User.findOne({ username: req.body.username });
+  const email = await User.findOne({email:req.body.email})
+  if (user) {
+    res.status(401).json(`${user.username} username already exists`);
+  }else if(email){
+    res.status(401).json("email already exists")
+  } else {
+    try {
+      const newUser = new User({
+        username: req.body.username,
+        email: req.body.email,
+        password: CryptoJS.AES.encrypt(
+          req.body.password,
+          process.env.PASS_SEC
+        ).toString(),
+        isAdmin: req.body.default,
+      });
+      const savedUser = await newUser.save();
+      // const { password, ...others } = savedUser._doc;
+      res.status(201).json(savedUser);
+    } catch (err) {
+      console.log(err)
+      res.status(500).json(err + "error");
+    }
   }
 });
 
@@ -27,6 +36,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.body.username });
+
     if (!user) {
       res.status(401).json("Wrong credentials username");
       return;
@@ -56,6 +66,7 @@ router.post("/login", async (req, res) => {
     );
 
     const { password, ...others } = user._doc;
+    console.log(user);
 
     res.status(200).json({ ...others, accessToken });
   } catch (err) {
